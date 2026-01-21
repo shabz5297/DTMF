@@ -44,3 +44,54 @@ function extractExt(evt) {
 
   return '';
 }
+
+//stabilising buffer key
+function keyOf(evt) {
+  return evt.Uniqueid || evt.Linkedid || evt.Channel || 'unknown';
+}
+
+//clean loop to prevent stale bufferes
+setInterval(cleanupExpired, 5_000).unref();
+
+//log into amy and tell it to send svents 
+await client.connect(username, secret, { host, port });
+await client.action({ Action: 'Events', EventMask: 'on' });
+
+
+
+//Ignore all AMI events except DTMF
+client.on('event', evt => {
+  if (evt.Event !== 'DTMFEnd') return;
+  const digit = evt.Digit;
+  ...
+});
+
+//buffer creation and update
+if (!buffers[key]) {
+  buffers[key] = { digits:'', lastTs: now, caller:..., channel:..., extenGuess:... };
+} else {
+  buffers[key].lastTs = now;
+  ...
+}
+
+//submission
+if (digit === TERMINATOR) {
+  const guess = buf.digits;
+
+  if (guess.length >= MIN_LEN && guess.length <= MAX_LEN) {
+    const ext = buf.extenGuess || 'unknown';
+    const msg = `Guess ... Digits: ${guess}`;
+    console.log(msg);
+
+    const chatId = EXTENSION_MAP[ext];
+    if (chatId) sendTelegram(msg, chatId);
+  }
+
+  delete buffers[key];
+  return;
+}
+
+//normal numbers with no submission should append
+buf.digits += digit;
+if (buf.digits.length > MAX_LEN) buf.digits = buf.digits.slice(-MAX_LEN);
+console.log(`Buffer[...] = ${buf.digits}`);
