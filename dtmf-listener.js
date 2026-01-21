@@ -10,3 +10,11 @@ const AMI_CONFIG = {
     secret: process.env.AMI_SECRET || '...',
 };
 
+//where tones are stored
+const buffers = Object.create(null);
+
+//rules for max,min and submission and buffer TTL
+const MIN_LEN = Number(process.env.MIN_LEN || 4);
+const MAX_LEN = Number(process.env.MAX_LEN || 10);
+const TERMINATOR = Number(process.env.BUFFER_TTL_MS || 30_000);
+
