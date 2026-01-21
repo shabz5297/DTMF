@@ -18,3 +18,29 @@ const MIN_LEN = Number(process.env.MIN_LEN || 4);
 const MAX_LEN = Number(process.env.MAX_LEN || 10);
 const TERMINATOR = Number(process.env.BUFFER_TTL_MS || 30_000);
 
+//telegram send function
+async function sendTelegram(text, chat_id) {
+  await axios.post(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, {
+    chat_id,
+    text
+  });
+}
+
+//which extension?
+function extractExt(evt) {
+  const cid = (evt.CallerIDNum || evt.ConnectedLineNum || '').trim();
+  if (/^\d+$/.test(cid)) return cid;
+
+  const ch = (evt.Channel || '').trim();
+
+  let m = ch.match(/^PJSIP\/(\d+)-/);
+  if (m) return m[1];
+
+  m = ch.match(/^PJSIP\/(\d+)\//);
+  if (m) return m[1];
+
+  m = ch.match(/^Local\/(\d+)@/);
+  if (m) return m[1];
+
+  return '';
+}
